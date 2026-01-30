@@ -13,7 +13,7 @@ Works on:
 ## Quick Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/atharvbyadav/pelican-installer/main/install.sh | sudo bash
+bash <(curl -fsSL https://raw.githubusercontent.com/atharvbyadav/Pelican-Installer/main/install.sh)
 ````
 
 ---
