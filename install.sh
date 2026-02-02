@@ -124,28 +124,31 @@ chown -R www-data:www-data /var/www/pelican
 chmod -R 755 storage/* bootstrap/cache/
 
 #############################################
-# TEMP HTTP CONFIG (for certbot)
+# TEMP HTTP CONFIG (CERTBOT)
 #############################################
 
 rm -f /etc/nginx/sites-enabled/default
 
+cat > /etc/nginx/sites-available/pelican.conf <<'EOF'
 server {
   listen 80;
-  server_name ${DOMAIN};
+  server_name DOMAIN_PLACEHOLDER;
   root /var/www/pelican/public;
   index index.php;
 
   location / {
-    try_files \$uri \$uri/ /index.php?\$query_string;
+    try_files $uri $uri/ /index.php?$query_string;
   }
 
-  location ~ \\.php\$ {
+  location ~ \.php$ {
     include fastcgi_params;
     fastcgi_pass unix:/run/php/php8.4-fpm.sock;
-    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
   }
 }
-EOL
+EOF
+
+sed -i "s/DOMAIN_PLACEHOLDER/${DOMAIN}/g" /etc/nginx/sites-available/pelican.conf
 
 ln -sf /etc/nginx/sites-available/pelican.conf /etc/nginx/sites-enabled/
 nginx -t
@@ -161,22 +164,22 @@ certbot --nginx -d ${DOMAIN} --agree-tos -m ${EMAIL} --non-interactive
 # FINAL HTTPS CONFIG
 #############################################
 
-cat > /etc/nginx/sites-available/pelican.conf <<EOL
+cat > /etc/nginx/sites-available/pelican.conf <<'EOF'
 server {
     listen 80;
-    server_name ${DOMAIN};
-    return 301 https://\$server_name\$request_uri;
+    server_name DOMAIN_PLACEHOLDER;
+    return 301 https://$server_name$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name ${DOMAIN};
+    server_name DOMAIN_PLACEHOLDER;
 
     root /var/www/pelican/public;
     index index.php;
 
-    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/DOMAIN_PLACEHOLDER/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/DOMAIN_PLACEHOLDER/privkey.pem;
 
     client_max_body_size 100m;
     client_body_timeout 120s;
@@ -187,18 +190,20 @@ server {
     add_header X-XSS-Protection "1; mode=block";
 
     location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
+        try_files $uri $uri/ /index.php?$query_string;
     }
 
-    location ~ \\.php\$ {
-        fastcgi_split_path_info ^(.+\\.php)(/.+)\$;
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
         fastcgi_pass unix:/run/php/php8.4-fpm.sock;
         fastcgi_index index.php;
         include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     }
 }
-EOL
+EOF
+
+sed -i "s/DOMAIN_PLACEHOLDER/${DOMAIN}/g" /etc/nginx/sites-available/pelican.conf
 
 nginx -t
 systemctl restart nginx
@@ -275,4 +280,3 @@ case $MODE in
 3) install_panel && install_wings ;;
 *) echo "Invalid option"; exit 1 ;;
 esac
-
