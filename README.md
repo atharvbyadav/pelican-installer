@@ -12,9 +12,17 @@ Works on:
 
 ## Quick Install
 
+### With **_http_**
+
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/atharvbyadav/Pelican-Installer/main/install.sh)
-````
+```
+
+### With **_https_**
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/atharvbyadav/Pelican-Installer/https/install.sh)
+```
 
 ---
 
